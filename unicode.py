@@ -266,3 +266,5 @@ def join_jamos(s, ignore_err=True):
     if queue:
         new_string += flush()
     return new_string
+
+#오픈소스
