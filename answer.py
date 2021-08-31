@@ -150,12 +150,14 @@ def checkCommand(cntNewChat, chatList):
             printCurrTime()
             print(f"현재 채팅 데이터 개수 : {dataIdx}")
 
+        iscmd = 0
         if (chatList[idx][0] == '['):
             contents = chatList[idx].split("] ")[2]
             for cmd in chatCommands:
                 if (contents == cmd):
                     printCurrTime()
                     print(f"{cmd} 명령어가 발견되었습니다.")
+                    iscmd = 1
                     sendAnswer(cmd)
 
         idx += 1
@@ -390,8 +392,16 @@ def sendAnswer(cmd):
         now = time.localtime()
         targetText += "지금은 %04d년 %d월 %d일\n%0d시 %d분 %d초입니다." %(now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
         sendText(roomName, targetText)
-    elif (cmd == "!날씨"): sendWeather(roomName)
-    elif (cmd == "!미세먼지"): sendFineDust(roomName)
+        printCurrTime()
+        print("시각 응답을 발송했습니다.")
+    elif (cmd == "!날씨"): 
+        sendWeather(roomName)
+        printCurrTime()
+        print("날씨 응답을 발송했습니다.")
+    elif (cmd == "!미세먼지"): 
+        sendFineDust(roomName)
+        printCurrTime()
+        print("미세먼지 응답을 발송했습니다.")
     elif (cmd == "!삼육구"): 
         play369(roomName)
         printCurrTime()
@@ -402,8 +412,4 @@ def sendAnswer(cmd):
         GGMEGData.clear()
         print("끝말잇기 게임이 종료되었습니다.")
 
-
-    if (cmd != "!삼육구" and cmd != "!끝말잇기"): 
-        printCurrTime()
-        print(cmd[1:] + " 응답을 발송했습니다.")
     ansCnt += 1
