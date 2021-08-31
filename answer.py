@@ -150,14 +150,12 @@ def checkCommand(cntNewChat, chatList):
             printCurrTime()
             print(f"현재 채팅 데이터 개수 : {dataIdx}")
 
-        iscmd = 0
         if (chatList[idx][0] == '['):
             contents = chatList[idx].split("] ")[2]
             for cmd in chatCommands:
                 if (contents == cmd):
                     printCurrTime()
                     print(f"{cmd} 명령어가 발견되었습니다.")
-                    iscmd = 1
                     sendAnswer(cmd)
 
         idx += 1
