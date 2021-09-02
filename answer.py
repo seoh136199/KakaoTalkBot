@@ -152,11 +152,7 @@ def checkCommand(cntNewChat, chatList):
 
         if (chatList[idx][0] == '['):
             contents = chatList[idx].split("] ")[2]
-            for cmd in chatCommands:
-                if (contents == cmd):
-                    printCurrTime()
-                    print(f"{cmd} 명령어가 발견되었습니다.")
-                    sendAnswer(cmd)
+            if (contents[0] == '!'): sendAnswer(contents)
 
         idx += 1
 
@@ -275,19 +271,23 @@ def getWord(firstLetter):
 
     return myWord
 
-def getProperJosa(word):
+def getProperJosa(word, josa):
     cuttedWord = j2hcj(h2j(word))
     idx = len(cuttedWord) - 1
     while (not is_hangul_compat_jamo(cuttedWord[idx])): idx -= 1
 
-    if (cuttedWord[idx] in CHAR_FINALS): return "은"
-    else: return "는"
+    if (cuttedWord[idx] in CHAR_FINALS): 
+        if (josa == "은"): return "은"
+        elif (josa == "으로"): return "으로"
+    else: 
+        if (josa == "은"): return "는"
+        elif (josa == "으로"): return "로"
 
 
 def playGGMEG(roomName):
     headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
 
-    startWordList = ["사각근", "회전체", "변호사", "전자쌍", "자기장", "와이파이", "실라스타틴나트륨", "고양이", "발사대", "파이썬", "국자", "의미", "실현", "식단", "복사", "이부프로펜", "아이돌", "법원", "아가메온", "보크사이트", "일몰", "보가즈쾨이", "일거삼득", "물리치료", "똠얌꿍"]
+    startWordList = ["사각근", "회전체", "변호사", "전자쌍", "자기장", "와이파이", "실라스타틴나트륨", "고양이", "발사대", "파이썬", "국자", "의미", "실현", "식단", "복사", "이부프로펜", "아이돌", "법원", "아가메온", "보크사이트", "일몰", "보가즈쾨이", "일거삼득", "물리치료", "똠얌꿍", "남양주"]
 
     global dataIdx, ansCnt
     
@@ -349,12 +349,12 @@ def playGGMEG(roomName):
             
             if (res.status_code == 404):
 
-                sendText(roomName, contents + getProperJosa(contents) + " 없는 단어입니다!")
+                sendText(roomName, "\'" + contents + "\'" + getProperJosa(contents, "은") + " 없는 단어입니다!")
                 ansCnt += 1
                 playGGMEG = 0
 
             elif (contents in GGMEGData):
-                sendText(roomName, contents + getProperJosa(contents) +" 이미 나온 단어입니다!")
+                sendText(roomName, "\'" + contents + "\'" + getProperJosa(contents, "은") + " 이미 나온 단어입니다!")
                 ansCnt += 1
                 playGGMEG = 0
             
@@ -367,7 +367,7 @@ def playGGMEG(roomName):
                 currWord = getWord(contents[-1])
 
                 if (currWord == ""):
-                    sendText(roomName, contents[-1] + "로 시작하는 단어를 찾지 못했어요!")
+                    sendText(roomName, "\'" + contents[-1] + "\'" + getProperJosa(contents, "으로") + " 시작하는 단어를 찾지 못했어요!")
                     sleep(0.001)
                     sendText(roomName, "당신의 승리입니다!!!")
                     ansCnt += 2
@@ -418,5 +418,9 @@ def sendAnswer(cmd):
         printCurrTime()
         GGMEGData.clear()
         print("끝말잇기 게임이 종료되었습니다.")
+    else:
+        printCurrTime()
+        sendText(roomName, "\'" + cmd + "\'" + " 명령어는 지원하지 않습니다.")
+        print("명령어 오류 응답을 발송했습니다.")
 
     ansCnt += 1
