@@ -1,6 +1,6 @@
 __all__ = ["split_syllable_char", "split_syllables",
            "join_jamos", "join_jamos_char",
-           "CHAR_INITIALS", "CHAR_MEDIALS", "CHAR_FINALS"]
+           "CHAR_INITIALS", "CHAR_MEDIALS", "CHAR_FINALS", "is_hangul_compat_jamo"]
 
 import itertools
 
@@ -266,5 +266,3 @@ def join_jamos(s, ignore_err=True):
     if queue:
         new_string += flush()
     return new_string
-
-#오픈소스

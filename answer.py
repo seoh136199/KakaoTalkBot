@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import random
 from jamo import h2j, j2hcj
-from unicode import join_jamos
+from unicode import *
 
 from kakao import *
 
@@ -275,6 +275,14 @@ def getWord(firstLetter):
 
     return myWord
 
+def getProperJosa(word):
+    cuttedWord = j2hcj(h2j(word))
+    idx = len(cuttedWord) - 1
+    while (not is_hangul_compat_jamo(cuttedWord[idx])): idx -= 1
+
+    if (cuttedWord[idx] in CHAR_FINALS): return "은"
+    else: return "는"
+
 
 def playGGMEG(roomName):
     headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
@@ -340,12 +348,13 @@ def playGGMEG(roomName):
             res = requests.get(url, headers=headers)
             
             if (res.status_code == 404):
-                sendText(roomName, contents + "(은)는 없는 단어입니다!")
+
+                sendText(roomName, contents + getProperJosa(contents) + " 없는 단어입니다!")
                 ansCnt += 1
                 playGGMEG = 0
 
             elif (contents in GGMEGData):
-                sendText(roomName, contents + "(은)는 이미 나온 단어입니다!")
+                sendText(roomName, contents + getProperJosa(contents) +" 이미 나온 단어입니다!")
                 ansCnt += 1
                 playGGMEG = 0
             
