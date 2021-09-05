@@ -3,13 +3,13 @@ from answer import *
 
 def main():
     
-    openChatroom(roomName)
+    openChatroom(myRoomName)
     sleep(0.1)
 
-    firstProcessChat(roomName)
+    firstProcessChat(myRoomName)
 
     while (True):
-        tmpList = processChat(roomName)
+        tmpList = processChat(myRoomName)
         checkCommand(tmpList[0], tmpList[1])
         sleep(0.01)
 

@@ -12,10 +12,9 @@ ansCnt = 0
 
 GGMEGData = []
 
-roomName = "카톡봇 테스트"
-chatCommands = ["!시각", "!날씨", "!미세먼지", "!삼육구", "!끝말잇기"]
+myRoomName = "카톡봇 테스트"
 
-def sendWeather(chatroom_name):
+def sendWeather(roomName):
     headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
     url = "https://search.naver.com/search.naver?sm=tab_hty.top&where=nexearch&query=날씨"
     res = requests.get(url, headers=headers)
@@ -37,10 +36,10 @@ def sendWeather(chatroom_name):
     text += f"\n최저/최고 : {todayMinTemp}℃ / {todayMaxTemp}℃"
     text += f"\n시간당 강수량 : {currPrecipitation}mm"
 
-    sendText(chatroom_name, text)
+    sendText(roomName, text)
 
 
-def sendFineDust(chatroom_name):
+def sendFineDust(roomName):
     headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
     url = "https://search.naver.com/search.naver?sm=tab_hty.top&where=nexearch&query=날씨"
     res = requests.get(url, headers=headers)
@@ -67,7 +66,7 @@ def sendFineDust(chatroom_name):
     text += f"\n미세먼지 : {currFineDust}㎍/㎥ {explanation[currFineDustIdx]}"
     text += f"\n초미세먼지 : {currUltraFineDust}㎍/㎥ {explanation[currUltraFineDustIdx]}"
 
-    sendText(chatroom_name, text)
+    sendText(roomName, text)
 
 
 def firstProcessChat(roomName): 
@@ -157,15 +156,33 @@ def checkCommand(cntNewChat, chatList):
         idx += 1
 
 
-def cnt369(num):
-    cnt = 0
-    while (num > 0):
-        if (num % 10 == 3 or num % 10 == 6 or num % 10 == 9): cnt += 1
-        num //= 10
-    return cnt
 
+def getProperJosa(word, josa):
+    cuttedWord = j2hcj(h2j(word))
+    idx = len(cuttedWord) - 1
+    while (not is_hangul_compat_jamo(cuttedWord[idx])): idx -= 1
+
+    if (cuttedWord[idx] in CHAR_FINALS): 
+        if (josa == "은"): return "은"
+        elif (josa == "으로"): return "으로"
+        elif (josa == "이라는"): return "이라는"
+    else: 
+        if (josa == "은"): return "는"
+        elif (josa == "으로"): return "로"
+        elif (josa == "이라는"): return "라는"
+
+
+#=============================================삼육구=============================================
 
 def play369(roomName):
+
+    def cnt369(num):
+        cnt = 0
+        while (num > 0):
+            if (num % 10 == 3 or num % 10 == 6 or num % 10 == 9): cnt += 1
+            num //= 10
+        return cnt
+
     global dataIdx, ansCnt
     
     isPlaying369 = 1
@@ -223,71 +240,63 @@ def play369(roomName):
 
     sleep(0.01)
     sendText(roomName, "다음에 다시 시도해주세요><")
+    
 
-
-def getWord(firstLetter):
-    headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
-
-    myWord = ""
-
-    case = 1
-    cuttedLetter = j2hcj(h2j(firstLetter))
-    dooum1 = cuttedLetter
-    dooum2 = cuttedLetter
-
-    if (cuttedLetter[0] == 'ㄹ'):
-        tmp = dooum1
-        dooum1 = 'ㅇ' + tmp[1:]
-        dooum2 = 'ㄴ' + tmp[1:]
-        case = 3
-    elif (cuttedLetter[0] == 'ㄴ'):
-        dooum1 = 'ㅇ' + dooum1[1:]
-        case = 2
-    dooum1 = join_jamos(dooum1)
-    dooum2 = join_jamos(dooum2)
-
-
-    caseList = [dooum1, dooum2, firstLetter]
-
-    for i in range(case):
-        length = ["두 글자", "세 글자", "네 글자", "다섯 글자", "여섯 글자 이상"]
-        for len in length:
-            if (myWord == ""):
-                url = "https://wordrow.kr/시작하는-말/" + caseList[i] + "/" + len
-                res = requests.get(url, headers=headers)
-                soup = BeautifulSoup(res.text, "lxml")
-                if (res.status_code != 200):
-                    continue
-
-                wordLst = soup.find("div", attrs={"class":"larger"}).find_all("li")
-                if (wordLst != None):
-                    myWord = random.choice(wordLst)
-                    wordLst.remove(myWord)
-                    myWord = myWord.find("a")["href"][4:-1]
-                    while (myWord in GGMEGData and len(wordLst) > 0):
-                        myWord = random.choice(wordLst)
-                        wordLst.remove(myWord)
-                        myWord = myWord.find("a")["href"][4:-1]
-
-    return myWord
-
-def getProperJosa(word, josa):
-    cuttedWord = j2hcj(h2j(word))
-    idx = len(cuttedWord) - 1
-    while (not is_hangul_compat_jamo(cuttedWord[idx])): idx -= 1
-
-    if (cuttedWord[idx] in CHAR_FINALS): 
-        if (josa == "은"): return "은"
-        elif (josa == "으로"): return "으로"
-    else: 
-        if (josa == "은"): return "는"
-        elif (josa == "으로"): return "로"
+#============================================끝말잇기============================================
 
 
 def playGGMEG(roomName):
+
+    def getWord(firstLetter):
+        headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
+
+        myWord = ""
+
+        case = 1
+        cuttedLetter = j2hcj(h2j(firstLetter))
+        dooum1 = cuttedLetter
+        dooum2 = cuttedLetter
+
+        if (cuttedLetter[0] == 'ㄹ'):
+            tmp = dooum1
+            dooum1 = 'ㅇ' + tmp[1:]
+            dooum2 = 'ㄴ' + tmp[1:]
+            case = 3
+        elif (cuttedLetter[0] == 'ㄴ'):
+            dooum1 = 'ㅇ' + dooum1[1:]
+            case = 2
+        dooum1 = join_jamos(dooum1)
+        dooum2 = join_jamos(dooum2)
+
+
+        caseList = [dooum1, dooum2, firstLetter]
+
+        for i in range(case):
+            length = ["두 글자", "세 글자", "네 글자", "다섯 글자", "여섯 글자 이상"]
+            for len in length:
+                if (myWord == ""):
+                    url = "https://wordrow.kr/시작하는-말/" + caseList[i] + "/" + len
+                    res = requests.get(url, headers=headers)
+                    soup = BeautifulSoup(res.text, "lxml")
+                    if (res.status_code != 200):
+                        continue
+
+                    wordLst = soup.find("div", attrs={"class":"larger"}).find_all("li")
+                    if (wordLst != None):
+                        myWord = random.choice(wordLst)
+                        wordLst.remove(myWord)
+                        myWord = myWord.find("a")["href"][4:-1]
+                        while (myWord in GGMEGData and len(wordLst) > 0):
+                            myWord = random.choice(wordLst)
+                            wordLst.remove(myWord)
+                            myWord = myWord.find("a")["href"][4:-1]
+
+        return myWord
+
+
     headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
 
-    startWordList = ["사각근", "회전체", "변호사", "전자쌍", "자기장", "와이파이", "실라스타틴나트륨", "고양이", "발사대", "파이썬", "국자", "의미", "실현", "식단", "복사", "이부프로펜", "아이돌", "법원", "아가메온", "보크사이트", "일몰", "보가즈쾨이", "일거삼득", "물리치료", "똠얌꿍", "남양주"]
+    startWordList = ["사각근", "회전체", "변호사", "전자쌍", "자기장", "와이파이", "실라스타틴나트륨", "고양이", "발사대", "파이썬", "국자", "의미", "실현", "식단", "복사", "이부프로펜", "아이돌", "법원", "아가메온", "보크사이트", "일몰", "보가즈쾨이", "일거삼득", "물리치료", "똠얌꿍", "남양주", "연어초밥"]
 
     global dataIdx, ansCnt
     
@@ -348,7 +357,6 @@ def playGGMEG(roomName):
             res = requests.get(url, headers=headers)
             
             if (res.status_code == 404):
-
                 sendText(roomName, "\'" + contents + "\'" + getProperJosa(contents, "은") + " 없는 단어입니다!")
                 ansCnt += 1
                 playGGMEG = 0
@@ -391,6 +399,51 @@ def playGGMEG(roomName):
     sendText(roomName, "다음에 다시 시도해주세요><")
 
 
+#=============================================폰트=============================================
+
+
+def sendFontAppliedText(roomName, font, text):
+
+    def isAlpaOrNum(text):
+        for i in range(len(text)):
+            if (text[i] == ' ' or (ord('0') <= ord(text[i]) <= ord('9'))): None
+            elif ((ord('A') <= ord(text[i]) <= ord('Z')) or (ord('a') <= ord(text[i]) <= ord('z'))): None
+            else:
+                return False
+        return True
+
+
+    ansText = ""
+    if (font == "default"): ansText = "폰트 이름과 변환할 문자열을 입력해주세요."
+    elif (text == "default"): ansText = "변환할 문자열을 입력해주세요."
+    elif (isAlpaOrNum(text) == False): ansText = "영어나 숫자가 아닌 문자가 포함되어 있어 변환할 수 없습니다."
+    else:
+        fonts = {
+                "굵은세리프" : "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗", 
+                "굵은세리프이탤릭" : "𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗",
+                "얇은세리프" : "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿", 
+                "얇은세리프이탤릭" : "𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿",
+                "굵은산세리프" : "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵",
+                "굵은산세리프이탤릭" : "𝘼𝘽𝘾𝘿𝙀𝙁𝙂𝙃𝙄𝙅𝙆𝙇𝙈𝙉𝙊𝙋𝙌𝙍𝙎𝙏𝙐𝙑𝙒𝙓𝙔𝙕𝙖𝙗𝙘𝙙𝙚𝙛𝙜𝙝𝙞𝙟𝙠𝙡𝙢𝙣𝙤𝙥𝙦𝙧𝙨𝙩𝙪𝙫𝙬𝙭𝙮𝙯𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵",
+                "얇은산세리프" : "𝖠𝖡𝖢𝖣𝖤𝖥𝖦𝖧𝖨𝖩𝖪𝖫𝖬𝖭𝖮𝖯𝖰𝖱𝖲𝖳𝖴𝖵𝖶𝖷𝖸𝖹𝖺𝖻𝖼𝖽𝖾𝖿𝗀𝗁𝗂𝗃𝗄𝗅𝗆𝗇𝗈𝗉𝗊𝗋𝗌𝗍𝗎𝗏𝗐𝗑𝗒𝗓𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫",
+                "얇은산세리프이탤릭" : "𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫",
+                "이중세리프" : "𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡"
+            }
+
+        if (font not in fonts): ansText = "\'" + font + "\'" + getProperJosa(font[-1], "이라는") + " 폰트는 지원하지 않습니다."
+        else:
+            for i in range(len(text)):
+                if (text[i] == " "): ansText += " "
+                elif (text[i].isdigit()): ansText += fonts[font][ord(text[i]) - ord('0') + 52]
+                elif (text[i].isupper()): ansText += fonts[font][ord(text[i]) - ord('A')]
+                else: ansText += fonts[font][ord(text[i]) - ord('a') + 26]
+
+    sendText(roomName, ansText)
+
+
+#================================================================================================
+
+
 def sendAnswer(cmd):
     global ansCnt
 
@@ -398,29 +451,37 @@ def sendAnswer(cmd):
         targetText = ""
         now = time.localtime()
         targetText += "지금은 %04d년 %d월 %d일\n%0d시 %d분 %d초입니다." %(now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
-        sendText(roomName, targetText)
+        sendText(myRoomName, targetText)
         printCurrTime()
         print("시각 응답을 발송했습니다.")
     elif (cmd == "!날씨"): 
-        sendWeather(roomName)
+        sendWeather(myRoomName)
         printCurrTime()
         print("날씨 응답을 발송했습니다.")
     elif (cmd == "!미세먼지"): 
-        sendFineDust(roomName)
+        sendFineDust(myRoomName)
         printCurrTime()
         print("미세먼지 응답을 발송했습니다.")
     elif (cmd == "!삼육구"): 
-        play369(roomName)
+        play369(myRoomName)
         printCurrTime()
         print("삼육구 게임이 종료되었습니다.")
     elif (cmd == "!끝말잇기"): 
-        playGGMEG(roomName)
+        playGGMEG(myRoomName)
         printCurrTime()
         GGMEGData.clear()
         print("끝말잇기 게임이 종료되었습니다.")
+    elif (cmd.split(" ")[0] == "!폰트"):
+        if (len(cmd.split(" ")) == 1):
+            sendFontAppliedText(myRoomName, "default", "default")
+        elif (len(cmd.split(" ")) == 2):
+            sendFontAppliedText(myRoomName, cmd.split(" ")[1], "default")
+        else: sendFontAppliedText(myRoomName, cmd.split(" ")[1], cmd[cmd[4:].find(' ') + 5:])
+        printCurrTime()
+        print("폰트 응답을 발송했습니다.")
     else:
         printCurrTime()
-        sendText(roomName, "\'" + cmd + "\'" + " 명령어는 지원하지 않습니다.")
+        sendText(myRoomName, "\'" + cmd + "\'" + " 명령어는 지원하지 않습니다.")
         print("명령어 오류 응답을 발송했습니다.")
 
     ansCnt += 1
