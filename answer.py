@@ -1,3 +1,5 @@
+__all__ = ["myRoomName", "firstProcessChat", "processChat", "checkCommand"]
+
 import requests
 from bs4 import BeautifulSoup
 import random
@@ -10,63 +12,7 @@ chatData = []
 dataIdx = 0
 ansCnt = 0
 
-GGMEGData = []
-
 myRoomName = "카톡봇 테스트"
-
-def sendWeather(roomName):
-    headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
-    url = "https://search.naver.com/search.naver?sm=tab_hty.top&where=nexearch&query=날씨"
-    res = requests.get(url, headers=headers)
-    res.raise_for_status()
-    soup = BeautifulSoup(res.text, "lxml")
-
-    location = soup.find("span", attrs={"class":"btn_select"}).find("em").get_text()
-    currTemp = soup.find("span", attrs={"class":"todaytemp"}).get_text()
-    
-    currsensibleTemp = soup.find("span", attrs={"class":"sensible"}).find("span", attrs={"class":"num"}).get_text()
-    todayMinTemp = soup.find("span", attrs={"class":"min"}).find("span", attrs={"class":"num"}).get_text()
-    todayMaxTemp = soup.find("span", attrs={"class":"max"}).find("span", attrs={"class":"num"}).get_text()
-    currPrecipitation = soup.find("span", attrs={"class":"rainfall"})
-    if (currPrecipitation == None): currPrecipitation = 0
-    else: currPrecipitation = currPrecipitation.find("span", attrs={"class":"num"}).get_text()
-
-    text = f"<{location[location.find(' ')+1:]} 날씨>"
-    text += f"\n현재 기온 : {currTemp}℃\n체감 기온 : {currsensibleTemp}℃"
-    text += f"\n최저/최고 : {todayMinTemp}℃ / {todayMaxTemp}℃"
-    text += f"\n시간당 강수량 : {currPrecipitation}mm"
-
-    sendText(roomName, text)
-
-
-def sendFineDust(roomName):
-    headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
-    url = "https://search.naver.com/search.naver?sm=tab_hty.top&where=nexearch&query=날씨"
-    res = requests.get(url, headers=headers)
-    res.raise_for_status()
-    soup = BeautifulSoup(res.text, "lxml")
-
-    location = soup.find("span", attrs={"class":"btn_select"}).find("em").get_text()
-    tmpList = soup.find("dl", attrs={"class":"indicator"}).find_all("span", attrs={"class":"num"})
-    currFineDust = int(tmpList[0].get_text()[:-3])
-    currUltraFineDust = int(tmpList[1].get_text()[:-3])
-
-    explanation = ["좋음😀", "보통😑", "나쁨😨", "매우나쁨🤬"]
-    if (currFineDust <= 30): currFineDustIdx = 0
-    elif (currFineDust <= 80): currFineDustIdx = 1
-    elif (currFineDust <= 150): currFineDustIdx = 2
-    else: currFineDustIdx = 3
-
-    if (currUltraFineDust <= 30): currUltraFineDustIdx = 0
-    elif (currUltraFineDust <= 80): currUltraFineDustIdx = 1
-    elif (currUltraFineDust <= 150): currUltraFineDustIdx = 2
-    else: currUltraFineDustIdx = 3
-
-    text = f"<{location[location.find(' ')+1:]} 미세먼지>"
-    text += f"\n미세먼지 : {currFineDust}㎍/㎥ {explanation[currFineDustIdx]}"
-    text += f"\n초미세먼지 : {currUltraFineDust}㎍/㎥ {explanation[currUltraFineDustIdx]}"
-
-    sendText(roomName, text)
 
 
 def firstProcessChat(roomName): 
@@ -156,7 +102,6 @@ def checkCommand(cntNewChat, chatList):
         idx += 1
 
 
-
 def getProperJosa(word, josa):
     cuttedWord = j2hcj(h2j(word))
     idx = len(cuttedWord) - 1
@@ -172,7 +117,70 @@ def getProperJosa(word, josa):
         elif (josa == "이라는"): return "라는"
 
 
-#=============================================삼육구=============================================
+#==================================================웹 크롤링=================================================
+
+
+def sendWeather(roomName):
+    headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
+    url = "https://search.naver.com/search.naver?sm=tab_hty.top&where=nexearch&query=날씨"
+    res = requests.get(url, headers=headers)
+    res.raise_for_status()
+    soup = BeautifulSoup(res.text, "lxml")
+
+    location = soup.find("span", attrs={"class":"btn_select"}).find("em").get_text()
+    currTemp = soup.find("span", attrs={"class":"todaytemp"}).get_text()
+    
+    currsensibleTemp = soup.find("span", attrs={"class":"sensible"}).find("span", attrs={"class":"num"}).get_text()
+    todayMinTemp = soup.find("span", attrs={"class":"min"}).find("span", attrs={"class":"num"}).get_text()
+    todayMaxTemp = soup.find("span", attrs={"class":"max"}).find("span", attrs={"class":"num"}).get_text()
+    currPrecipitation = soup.find("span", attrs={"class":"rainfall"})
+    if (currPrecipitation == None): currPrecipitation = 0
+    else: currPrecipitation = currPrecipitation.find("span", attrs={"class":"num"}).get_text()
+
+    text = f"<{location[location.find(' ')+1:]} 날씨>"
+    text += f"\n현재 기온 : {currTemp}℃\n체감 기온 : {currsensibleTemp}℃"
+    text += f"\n최저/최고 : {todayMinTemp}℃ / {todayMaxTemp}℃"
+    text += f"\n시간당 강수량 : {currPrecipitation}mm"
+
+    sendText(roomName, text)
+
+
+def sendFineDust(roomName):
+    headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
+    url = "https://search.naver.com/search.naver?sm=tab_hty.top&where=nexearch&query=날씨"
+    res = requests.get(url, headers=headers)
+    res.raise_for_status()
+    soup = BeautifulSoup(res.text, "lxml")
+
+    location = soup.find("span", attrs={"class":"btn_select"}).find("em").get_text()
+    tmpList = soup.find("dl", attrs={"class":"indicator"}).find_all("span", attrs={"class":"num"})
+
+    currFineDust = tmpList[0].get_text()[:-3]
+    if (currFineDust == "-"): currFineDust = 0
+    else: currFineDust = int(currFineDust)
+    currUltraFineDust = tmpList[1].get_text()[:-3]
+    if (currUltraFineDust == "-"): currUltraFineDust = 0
+    else: currUltraFineDust = int(currUltraFineDust)
+
+    explanation = ["좋음😀", "보통😑", "나쁨😨", "매우나쁨🤬"]
+    if (currFineDust <= 30): currFineDustIdx = 0
+    elif (currFineDust <= 80): currFineDustIdx = 1
+    elif (currFineDust <= 150): currFineDustIdx = 2
+    else: currFineDustIdx = 3
+
+    if (currUltraFineDust <= 30): currUltraFineDustIdx = 0
+    elif (currUltraFineDust <= 80): currUltraFineDustIdx = 1
+    elif (currUltraFineDust <= 150): currUltraFineDustIdx = 2
+    else: currUltraFineDustIdx = 3
+
+    text = f"<{location[location.find(' ')+1:]} 미세먼지>"
+    text += f"\n미세먼지 : {currFineDust}㎍/㎥ {explanation[currFineDustIdx]}"
+    text += f"\n초미세먼지 : {currUltraFineDust}㎍/㎥ {explanation[currUltraFineDustIdx]}"
+
+    sendText(roomName, text)
+
+
+#==================================================삼육구==================================================
 
 def play369(roomName):
 
@@ -242,10 +250,12 @@ def play369(roomName):
     sendText(roomName, "다음에 다시 시도해주세요><")
     
 
-#============================================끝말잇기============================================
+#=================================================끝말잇기=================================================
 
 
 def playGGMEG(roomName):
+    
+    GGMEGData = []
 
     def getWord(firstLetter):
         headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"}
@@ -397,9 +407,10 @@ def playGGMEG(roomName):
         
     sleep(0.01)
     sendText(roomName, "다음에 다시 시도해주세요><")
+    GGMEGData.clear()
 
 
-#=============================================폰트=============================================
+#==================================================폰트==================================================
 
 
 def sendFontAppliedText(roomName, font, text):
@@ -441,7 +452,7 @@ def sendFontAppliedText(roomName, font, text):
     sendText(roomName, ansText)
 
 
-#================================================================================================
+#==========================================================================================================
 
 
 def sendAnswer(cmd):
@@ -454,23 +465,27 @@ def sendAnswer(cmd):
         sendText(myRoomName, targetText)
         printCurrTime()
         print("시각 응답을 발송했습니다.")
+
     elif (cmd == "!날씨"): 
         sendWeather(myRoomName)
         printCurrTime()
         print("날씨 응답을 발송했습니다.")
+
     elif (cmd == "!미세먼지"): 
         sendFineDust(myRoomName)
         printCurrTime()
         print("미세먼지 응답을 발송했습니다.")
+
     elif (cmd == "!삼육구"): 
         play369(myRoomName)
         printCurrTime()
         print("삼육구 게임이 종료되었습니다.")
+
     elif (cmd == "!끝말잇기"): 
         playGGMEG(myRoomName)
         printCurrTime()
-        GGMEGData.clear()
         print("끝말잇기 게임이 종료되었습니다.")
+
     elif (cmd.split(" ")[0] == "!폰트"):
         if (len(cmd.split(" ")) == 1):
             sendFontAppliedText(myRoomName, "default", "default")
@@ -479,6 +494,13 @@ def sendAnswer(cmd):
         else: sendFontAppliedText(myRoomName, cmd.split(" ")[1], cmd[cmd[4:].find(' ') + 5:])
         printCurrTime()
         print("폰트 응답을 발송했습니다.")
+
+    elif (cmd == "!종료"): 
+        sendText(myRoomName, "카톡봇을 종료합니다. 또 만나요!")
+        printCurrTime()
+        print("프로그램을 종료합니다.")
+        exit()
+
     else:
         printCurrTime()
         sendText(myRoomName, "\'" + cmd + "\'" + " 명령어는 지원하지 않습니다.")

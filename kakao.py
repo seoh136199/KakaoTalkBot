@@ -1,5 +1,4 @@
 import time, win32con, win32api, win32gui, ctypes
-from pywinauto import clipboard
 from pyautogui import *
 import win32clipboard
 import time
